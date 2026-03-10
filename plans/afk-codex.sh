@@ -5,7 +5,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 if [ -z "${1:-}" ]; then
-  echo "Usage: plans/afk-claude.sh <iterations>"
+  echo "Usage: plans/afk-codex.sh <iterations>"
   exit 1
 fi
 
@@ -15,7 +15,7 @@ base_prompt="$(cat plans/prompt.md)"
 
 for ((i = 1; i <= $1; i++)); do
   timestamp="$(date +"%Y%m%d-%H%M%S")"
-  artifact="plans/artifacts/claude-iteration-${i}-${timestamp}.txt"
+  artifact="plans/artifacts/codex-iteration-${i}-${timestamp}.txt"
   ralph_commits="$(git log --grep="^RALPH:" -n 10 --format="%H%n%ad%n%B---" --date=short 2>/dev/null || true)"
 
   prompt="$(cat <<EOF
@@ -26,13 +26,13 @@ ${ralph_commits:-No RALPH commits found.}
 EOF
 )"
 
-  echo "---- Claude iteration $i ----"
+  echo "---- Codex iteration $i ----"
   result="$(
-    claude --print --permission-mode bypassPermissions "$prompt" | tee "$artifact"
+    codex exec --dangerously-bypass-approvals-and-sandbox "$prompt" | tee "$artifact"
   )"
 
   if [[ "$result" == *"<promise>ABORT</promise>"* ]]; then
-    echo "Claude aborted on iteration $i. See $artifact."
+    echo "Codex aborted on iteration $i. See $artifact."
     exit 1
   fi
 

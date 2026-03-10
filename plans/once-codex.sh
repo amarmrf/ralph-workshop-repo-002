@@ -15,4 +15,4 @@ ${ralph_commits:-No RALPH commits found.}
 EOF
 )"
 
-claude --permission-mode acceptEdits "$prompt"
+codex -s danger-full-access "$prompt"

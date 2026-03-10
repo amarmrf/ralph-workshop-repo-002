@@ -1,51 +1,33 @@
-# INPUTS
+# Ralph Agent Prompt
 
-Pull @plans/prd.md into your context.
+Read `plans/prd.md` and `plans/progress.txt` before changing anything.
 
-You've been passed a file containing the last 10 RALPH commits (SHA, date, full message). Review these to understand what work has been done.
+Break the PRD into the smallest possible implementation tasks. Choose the next unchecked `PRD-*` task and complete exactly one task.
 
-# TASK BREAKDOWN
+If every `PRD-*` item is complete, output `<promise>COMPLETE</promise>` and stop.
 
-Break down the PRD into tasks.
+If you are blocked and cannot safely complete the selected task, output `<promise>ABORT</promise>` and explain the blocker.
 
-Make each task the smallest possible unit of work. We don't want to outrun our headlights. Aim for one small change per task.
+Before committing:
 
-# TASK SELECTION
+- run `npm run test`
+- run `npm run typecheck`
+- run `npm run build`
 
-Pick the next task.
+After finishing the task:
 
-If all tasks are complete, output <promise>COMPLETE</promise>.
+- update `plans/prd.md` by checking off the completed item
+- append a dated note to `plans/progress.txt`
+- make one git commit
 
-# EXPLORATION
+Commit rules:
 
-Explore the repo and fill your context window with relevant information that will allow you to complete the task.
+- start the commit message with `RALPH:`
+- include the completed `PRD-*` item
+- keep the scope limited to the single task
 
-# EXECUTION
+Final rules:
 
-Complete the task.
-
-If anything blocks your completion of the task, output <promise>ABORT</promise>.
-
-# FEEDBACK LOOPS
-
-Before committing, run the feedback loops:
-
-- Check that the feature works using the Playwright MCP server to test the dev server. You must run the dev server locally via `npm run dev`.
-- `npm run test` to run the tests
-- `npm run typecheck` to run the type checker
-
-# COMMIT
-
-Make a git commit. The commit message must:
-
-1. Start with `RALPH:` prefix
-2. Include task completed + PRD reference
-3. Key decisions made
-4. Files changed
-5. Blockers or notes for next iteration
-
-Keep it concise.
-
-# FINAL RULES
-
-ONLY WORK ON A SINGLE TASK.
+- only do one task
+- no backward compatibility work
+- prefer small edits over wide refactors

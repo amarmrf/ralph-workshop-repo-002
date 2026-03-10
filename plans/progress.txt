@@ -1,0 +1,3 @@
+# Ralph Progress
+
+- 2026-03-10: Ralph scaffold initialized. No PRD tasks completed yet.
