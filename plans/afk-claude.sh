@@ -1,43 +1,43 @@
 #!/bin/bash
+set -e
 
-set -euo pipefail
-
-cd "$(dirname "$0")/.."
-
-if [ -z "${1:-}" ]; then
-  echo "Usage: plans/afk-claude.sh <iterations>"
+if [ -z "$1" ]; then
+  echo "Usage: $0 <iterations>"
   exit 1
 fi
 
-mkdir -p plans/artifacts
+# jq filter to extract streaming text from assistant messages
+stream_text='select(.type == "assistant").message.content[]? | select(.type == "text").text // empty | gsub("\n"; "\r\n") | . + "\r\n\n"'
 
-base_prompt="$(cat plans/prompt.md)"
+# jq filter to extract final result
+final_result='select(.type == "result").result // empty'
 
-for ((i = 1; i <= $1; i++)); do
-  timestamp="$(date +"%Y%m%d-%H%M%S")"
-  artifact="plans/artifacts/claude-iteration-${i}-${timestamp}.txt"
-  ralph_commits="$(git log --grep="^RALPH:" -n 10 --format="%H%n%ad%n%B---" --date=short 2>/dev/null || true)"
+for ((i=1; i<=$1; i++)); do
+  tmpfile=$(mktemp)
+  trap "rm -f $tmpfile" EXIT
 
-  prompt="$(cat <<EOF
-$base_prompt
 
-Previous RALPH commits:
-${ralph_commits:-No RALPH commits found.}
-EOF
-)"
+  # Get last 10 RALPH commits
+  ralph_commits=$(git log --grep="RALPH" -n 10 --format="%H%n%ad%n%B---" --date=short 2>/dev/null || echo "No RALPH commits found")
 
-  echo "---- Claude iteration $i ----"
-  result="$(
-    claude --print --permission-mode bypassPermissions "$prompt" | tee "$artifact"
-  )"
+  echo "------- ITERATION $i --------"
+  
+  # Experiments in cleaning up any running dev processes
+  rm -rf ./.next/dev/lock
 
-  if [[ "$result" == *"<promise>ABORT</promise>"* ]]; then
-    echo "Claude aborted on iteration $i. See $artifact."
-    exit 1
-  fi
+  docker sandbox run claude \
+    --verbose \
+    --print \
+    --output-format stream-json \
+    "@plans/prompt.md Previous RALPH commits: $ralph_commits" \
+  | grep --line-buffered '^{' \
+  | tee "$tmpfile" \
+  | jq --unbuffered -rj "$stream_text"
+
+  result=$(jq -r "$final_result" "$tmpfile")
 
   if [[ "$result" == *"<promise>COMPLETE</promise>"* ]]; then
-    echo "PRD complete after $i iterations."
+    echo "Ralph complete after $i iterations."
     exit 0
   fi
 done

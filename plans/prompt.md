@@ -1,33 +1,51 @@
-# Ralph Agent Prompt
+# INPUTS
 
-Read `plans/prd.md` and `plans/progress.txt` before changing anything.
+Pull @plans/prd.md into your context.
 
-Break the PRD into the smallest possible implementation tasks. Choose the next unchecked `PRD-*` task and complete exactly one task.
+You've been passed a file containing the last 10 RALPH commits (SHA, date, full message). Review these to understand what work has been done.
 
-If every `PRD-*` item is complete, output `<promise>COMPLETE</promise>` and stop.
+# TASK BREAKDOWN
 
-If you are blocked and cannot safely complete the selected task, output `<promise>ABORT</promise>` and explain the blocker.
+Break down the PRD into tasks.
 
-Before committing:
+Make each task the smallest possible unit of work. We don't want to outrun our headlights. Aim for one small change per task.
 
-- run `npm run test`
-- run `npm run typecheck`
-- run `npm run build`
+# TASK SELECTION
 
-After finishing the task:
+Pick the next task.
 
-- update `plans/prd.md` by checking off the completed item
-- append a dated note to `plans/progress.txt`
-- make one git commit
+If all tasks are complete, output <promise>COMPLETE</promise>.
 
-Commit rules:
+# EXPLORATION
 
-- start the commit message with `RALPH:`
-- include the completed `PRD-*` item
-- keep the scope limited to the single task
+Explore the repo and fill your context window with relevant information that will allow you to complete the task.
 
-Final rules:
+# EXECUTION
 
-- only do one task
-- no backward compatibility work
-- prefer small edits over wide refactors
+Complete the task.
+
+If anything blocks your completion of the task, output <promise>ABORT</promise>.
+
+# FEEDBACK LOOPS
+
+Before committing, run the feedback loops:
+
+- Check that the feature works using the Playwright MCP server to test the dev server. You must run the dev server locally via `npm run dev`.
+- `npm run test` to run the tests
+- `npm run typecheck` to run the type checker
+
+# COMMIT
+
+Make a git commit. The commit message must:
+
+1. Start with `RALPH:` prefix
+2. Include task completed + PRD reference
+3. Key decisions made
+4. Files changed
+5. Blockers or notes for next iteration
+
+Keep it concise.
+
+# FINAL RULES
+
+ONLY WORK ON A SINGLE TASK.
